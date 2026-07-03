@@ -918,6 +918,7 @@ def append_provider_args(
     provider_json: str = "",
     model: str = "",
     timeout: int | None = None,
+    provider_retries: int | None = None,
 ) -> None:
     provider = provider or "none"
     provider_json = provider_json or ""
@@ -936,6 +937,8 @@ def append_provider_args(
         cmd.extend(["--provider", provider])
         if provider in {"opencode", "openai-compatible"} and model:
             cmd.extend(["--model", model])
+        if provider in {"opencode", "openai-compatible"} and provider_retries is not None:
+            cmd.extend(["--provider-retries", str(provider_retries)])
         if timeout is not None:
             cmd.extend(["--timeout", str(timeout)])
         return
@@ -956,6 +959,7 @@ def build_v2_review_stages(args: argparse.Namespace, run_date: str) -> list[tupl
         provider_json=getattr(args, "deepseek_provider_json", ""),
         model=getattr(args, "deepseek_model", ""),
         timeout=getattr(args, "deepseek_timeout", None),
+        provider_retries=getattr(args, "deepseek_provider_retries", 1),
     )
 
     codex_timeout = 1200
@@ -4638,6 +4642,7 @@ def main() -> int:
     parser.add_argument("--gemini-model", default="gemini-3.1-pro-preview")
     parser.add_argument("--deepseek-model", default="abrdns/deepseek-v4-pro")
     parser.add_argument("--deepseek-timeout", type=int, default=1200)
+    parser.add_argument("--deepseek-provider-retries", type=int, default=1, help="Retry structured OpenCode/openai-compatible review output this many extra times.")
     parser.add_argument("--deepseek-provider", choices=["json", "opencode", "openai-compatible", "none"], default="none")
     parser.add_argument("--deepseek-provider-json", default="")
     parser.add_argument("--codex-execution-provider", choices=["json", "codex-cli", "none"], default="none")

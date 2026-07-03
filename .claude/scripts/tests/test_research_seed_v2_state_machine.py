@@ -324,6 +324,7 @@ class ResearchSeedV2StateMachineTest(unittest.TestCase):
             "deepseek_provider_json": "",
             "deepseek_model": "deepseek/test-model",
             "deepseek_timeout": 123,
+            "deepseek_provider_retries": 1,
             "codex_execution_provider": "none",
             "codex_execution_provider_json": "",
             "idea_timeout": 45,
@@ -3404,6 +3405,8 @@ def bad(source, recommended):
         self.assertIn("deepseek/test-model", by_name["deepseek_review"])
         self.assertIn("--timeout", by_name["deepseek_review"])
         self.assertIn("123", by_name["deepseek_review"])
+        self.assertIn("--provider-retries", by_name["deepseek_review"])
+        self.assertIn("1", by_name["deepseek_review"])
         self.assertGreater(by_timeout["deepseek_review"], 123)
         self.assertGreaterEqual(by_timeout["deepseek_review"], 1800)
         self.assertIn("--provider", by_name["codex_execution_review"])
@@ -3417,6 +3420,7 @@ def bad(source, recommended):
         cmd = self.review_stage_commands(deepseek_provider="opencode")["deepseek_review"]
         self.assertEqual(cmd.count("--provider"), 1)
         self.assertEqual(cmd[cmd.index("--provider") + 1], "opencode")
+        self.assertEqual(cmd[cmd.index("--provider-retries") + 1], "1")
 
     def test_build_v2_review_stages_deepseek_openai_compatible_has_exactly_one_provider(self) -> None:
         cmd = self.review_stage_commands(deepseek_provider="openai-compatible")["deepseek_review"]
@@ -3456,12 +3460,13 @@ def bad(source, recommended):
 
     def test_pipeline_provider_args_single_provider_deepseek(self) -> None:
         cmd = ["python", "deepseek_scientific_review.py"]
-        append_provider_args(cmd, provider="opencode", model="deepseek/test-model", timeout=123)
+        append_provider_args(cmd, provider="opencode", model="deepseek/test-model", timeout=123, provider_retries=1)
         self.assertEqual(cmd.count("--provider"), 1)
         self.assertIn("opencode", cmd)
         self.assertNotIn("none", cmd)
         self.assertIn("--model", cmd)
         self.assertIn("--timeout", cmd)
+        self.assertEqual(cmd[cmd.index("--provider-retries") + 1], "1")
 
     def test_pipeline_provider_args_single_provider_deepseek_openai_compatible(self) -> None:
         cmd = ["python", "deepseek_scientific_review.py"]
